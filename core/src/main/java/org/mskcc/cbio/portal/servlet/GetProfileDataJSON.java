@@ -220,11 +220,16 @@ public class GetProfileDataJSON extends HttpServlet  {
             PrintWriter out = httpServletResponse.getWriter();
             mapper.writeValue(out, result);
         } else {
-        	//tabular format response: only for genes...no geneset support here:
-        	//TODO
+        	//tabular format response:
+        	//validate:
+        	if (geneticProfileIds.length != 1) {
+        		throw new IllegalArgumentException("1 and only 1 profile at a time expected for download action");
+        	}
+        	GeneticProfile geneticProfile = DaoGeneticProfile.getGeneticProfileByStableId(geneticProfileIds[0]);
             String result_str = "";
             if (format.equals("tab")) {
-                String sampleId_str = "GENE_ID" + "\t" + "COMMON" + "\t";
+                String sampleId_str = (geneticProfile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE) ? 
+                		"GENESET_ID" : "GENE_ID" + "\t" + "COMMON") + "\t";
                 Iterator<String> sampleIds = result.get(geneticEntityIdList[0]).getFieldNames();
                 while (sampleIds.hasNext()) {
                     sampleId_str += sampleIds.next() + "\t";
@@ -232,14 +237,18 @@ public class GetProfileDataJSON extends HttpServlet  {
                 sampleId_str += "\n";
 
                 String val_str = "";
-                DaoGeneOptimized daoGene = DaoGeneOptimized.getInstance();
-                Iterator<String> geneSymbols = result.getFieldNames();
-                while (geneSymbols.hasNext()) {
-                    String geneSymbol = geneSymbols.next();
-                    CanonicalGene gene = daoGene.getGene(geneSymbol);
-                    long entrezGeneId = gene.getEntrezGeneId();
-                    val_str += geneSymbol + "\t" + entrezGeneId + "\t";
-                    JsonNode dataObj = result.get(geneSymbol);
+                Iterator<String> geneticEntityIds = result.getFieldNames();
+                while (geneticEntityIds.hasNext()) {
+                	String entityId = geneticEntityIds.next();
+                	if (geneticProfile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE)) {
+                		val_str += entityId + "\t";
+                	} else {
+                        DaoGeneOptimized daoGene = DaoGeneOptimized.getInstance();
+                        CanonicalGene gene = daoGene.getGene(entityId);
+	                    long entrezGeneId = gene.getEntrezGeneId();
+	                    val_str += entityId + "\t" + entrezGeneId + "\t";
+                	}
+                    JsonNode dataObj = result.get(entityId);
                     Iterator<String> sampleIds_val = dataObj.getFieldNames();
                     while (sampleIds_val.hasNext()) {
                         String sampleId = sampleIds_val.next();
@@ -252,35 +261,41 @@ public class GetProfileDataJSON extends HttpServlet  {
                 result_str += sampleId_str + val_str;
             } else if (format.equals("matrix")) {
 
-                String  gene_str = "",
+                String  entity_str = "",
                         val_str = "";
-
-                gene_str += "GENE_ID" + "\t";
-                Iterator<String> geneSymbols = result.getFieldNames();
-                DaoGeneOptimized daoGene = DaoGeneOptimized.getInstance();
-                while (geneSymbols.hasNext()) {
-                    String geneSymbol = geneSymbols.next();
-                    CanonicalGene gene = daoGene.getGene(geneSymbol);
-                    gene_str += gene.getEntrezGeneId() + "\t";
+                entity_str += (geneticProfile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE) ? 
+                		"GENESET_ID" : "GENE_ID") + "\t";
+                //1st header row:
+                for(String entityId : geneticEntityIdList) {
+                	if (geneticProfile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE)) {
+                		entity_str += entityId + "\t";
+                	} else {
+	                    DaoGeneOptimized daoGene = DaoGeneOptimized.getInstance();
+	                    CanonicalGene gene = daoGene.getGene(entityId);
+	                    entity_str += gene.getEntrezGeneId() + "\t";
+                	}
                 }
-                gene_str += "\n" + "COMMON" + "\t";
-                for(String geneId : geneticEntityIdList) {
-                    gene_str += geneId + "\t";
+                //2nd header row (in case of genes only):
+                if (!geneticProfile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE)) { 
+	                entity_str += "\n" + "COMMON" + "\t";
+	                for(String entityId : geneticEntityIdList) {
+	                    entity_str += entityId + "\t";
+	                }
                 }
-                gene_str += "\n";
+                entity_str += "\n";
 
                 Iterator<String> sampleIds = result.get(geneticEntityIdList[0]).getFieldNames();
                 while (sampleIds.hasNext()) {
                     String sampleId = sampleIds.next();
                     val_str += sampleId + "\t";
-                    for (String geneId : geneticEntityIdList) {
-                       String _val = result.get(geneId).get(sampleId).get(geneticProfileIds[0]).toString();
+                    for (String geneticEntityId : geneticEntityIdList) {
+                       String _val = result.get(geneticEntityId).get(sampleId).get(geneticProfileIds[0]).toString();
                         _val = _val.replaceAll("\"", "");
                         val_str += _val + "\t";
                     }
                     val_str += "\n";
                 }
-                result_str += gene_str + val_str;
+                result_str += entity_str + val_str;
             }
 
             httpServletResponse.setContentType("application/octet-stream");

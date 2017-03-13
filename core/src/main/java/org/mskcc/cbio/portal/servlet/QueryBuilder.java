@@ -256,7 +256,7 @@ public class QueryBuilder extends HttpServlet {
                                                sampleSetId, sampleIds, httpServletRequest, geneList, geneSetList);
             if (action != null && action.equals(ACTION_SUBMIT) && (!errorsExist)) {
 
-                processData(cancerTypeId, geneList, geneticProfileIdSet, profileList, sampleSetId,
+                processData(cancerTypeId, geneList, geneSetList, geneticProfileIdSet, profileList, sampleSetId,
                             sampleIds, sampleSets, patientCaseSelect, getServletContext(), httpServletRequest,
                             httpServletResponse, xdebug);
             } else {
@@ -325,6 +325,7 @@ public class QueryBuilder extends HttpServlet {
     */
     private void processData(String cancerStudyStableId,
                              String geneList,
+							 String geneSetList,
 							 HashSet<String> geneticProfileIdSet,
 							 ArrayList<GeneticProfile> profileList,
 							 String sampleSetId, String sampleIds,
@@ -434,9 +435,15 @@ public class QueryBuilder extends HttpServlet {
             if( null == profile ){
                 continue;
             }
+            ArrayList<String> geneticEntityIds;
+            if (profile.getGeneticAlterationType().equals(GeneticAlterationType.GENESET_SCORE)) {
+            	geneticEntityIds = new ArrayList<>(Arrays.asList(geneSetList.split("( )|(\\n)")));
+            } else {
+            	geneticEntityIds = new ArrayList<>(Arrays.asList(geneList.split("( )|(\\n)")));
+            }
             GetProfileData remoteCall =
-                new GetProfileData(profile, new ArrayList<>(Arrays.asList(geneList.split("( )|(\\n)"))), StringUtils.join(setOfSampleIds, " "));
-            DownloadLink downloadLink = new DownloadLink(profile, new ArrayList<>(Arrays.asList(geneList.split("( )|(\\n)"))), sampleIds,
+                new GetProfileData(profile, geneticEntityIds, StringUtils.join(setOfSampleIds, " "));
+            DownloadLink downloadLink = new DownloadLink(profile, geneticEntityIds, sampleIds,
                 remoteCall.getRawContent());
             downloadLinkSet.add(downloadLink);
         }
