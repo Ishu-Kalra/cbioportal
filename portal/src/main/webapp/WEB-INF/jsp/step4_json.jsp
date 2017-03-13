@@ -102,7 +102,7 @@
 		// Save loading image in global var
         loadingImage = $('#geneset_dialog #loader-img');
 		
-    	// Call the webservice and render the tree again with webservice response:
+    	// Call the webservice with default thresholds and render the tree with webservice response:
         initializeGenesetJstree();
         return;
     };

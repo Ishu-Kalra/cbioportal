@@ -94,8 +94,12 @@ var initGenesetDialogue = function() {
 };
 
 // Inititalize gene set hierarchical tree
-var initializeGenesetJstree = function (percentile = "75", scoreThreshold = "0.1", pvalueThreshold = "0.05") {
+var initializeGenesetJstree = function (percentile, scoreThreshold, pvalueThreshold) {
 	console.log("Initializing hierarchical tree for gene set popup");
+	//defaults:
+	percentile = percentile || "75";
+	scoreThreshold = scoreThreshold || "0.1";
+	pvalueThreshold = pvalueThreshold || "0.05";
 
 	// Construct URL
 	var hierarchyJSON = "api/genesets/hierarchy/fetch?geneticProfileId=" + gsvaGenomicProfileId;
