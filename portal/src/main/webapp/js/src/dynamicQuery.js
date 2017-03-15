@@ -166,6 +166,7 @@ function loadGeneList(geneSetId) {
         window.metaDataJson.gene_sets[geneSetId].gene_list = json.list;
         $("#gene_list").val(json.list);
         $('.main_query_panel').stop().fadeTo("fast",1);
+        GeneSymbolValidator.initialize(); //Validate the introduced genes in the box
     });
 }
 	
@@ -828,6 +829,9 @@ function geneSetSelected() {
 
         //  Set the gene list text area
         $("#gene_list").val(gene_set.gene_list);
+
+        // Validate the genes in the gene list
+        GeneSymbolValidator.initialize();
     }
 }
 
