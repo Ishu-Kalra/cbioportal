@@ -39,7 +39,8 @@ import org.mskcc.cbio.portal.model.*;
 import org.mskcc.cbio.portal.model.converter.MutationModelConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.cbioportal.model.GenesetData;
+import org.cbioportal.model.GeneGeneticData;
+import org.cbioportal.model.GenesetGeneticData;
 import org.cbioportal.model.GeneticData;
 import org.cbioportal.service.GenesetDataService;
 import org.cbioportal.service.GeneticDataService;
@@ -154,7 +155,7 @@ public class GeneticAlterationUtil {
 			//use new API which supports geneset query:
 	    	if (entityType.equals(EntityType.GENE)) {
 	    		int entrezId = Integer.parseInt(geneticEntityStableId);
-	    		List<GeneticData> geneticDataItems = geneticDataService.fetchGeneticData(
+	    		List<GeneGeneticData> geneticDataItems = geneticDataService.fetchGeneticData(
 	    			targetGeneticProfile.getStableId(), 
 	    			sampleIds, 
 	    			Arrays.asList(entrezId), 
@@ -165,12 +166,12 @@ public class GeneticAlterationUtil {
 		    	}
 	    	} else if (entityType.equals(EntityType.GENESET)) {
 	    		String genesetId = geneticEntityStableId;
-	    		List<GenesetData> genesetDataItems = genesetDataService.fetchGenesetData(
+	    		List<GenesetGeneticData> genesetDataItems = genesetDataService.fetchGenesetData(
 	    			targetGeneticProfile.getStableId(), 
 	    			sampleIds, 
 	    			Arrays.asList(genesetId));
 	    	
-		    	for (GenesetData genesetData : genesetDataItems) {
+		    	for (GenesetGeneticData genesetData : genesetDataItems) {
 		    		samplesAndValue.put(genesetData.getSampleId(), genesetData.getValue());
 		    	}
 	    	}

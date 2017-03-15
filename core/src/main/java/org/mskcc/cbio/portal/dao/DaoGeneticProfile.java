@@ -301,7 +301,7 @@ public final class DaoGeneticProfile {
                 profileOut.setShowProfileInAnalysisTab(true);
             }
             profileOut.setGeneticAlterationType(GeneticAlterationType.valueOf(profileIn.getGeneticAlterationType().name()));
-            profileOut.setDatatype(profileIn.getDatatype());
+            profileOut.setDatatype(profileIn.getDatatype().getValue());
             profileOut.setGeneticProfileId(profileIn.getGeneticProfileId());
             return profileOut;
     	}
